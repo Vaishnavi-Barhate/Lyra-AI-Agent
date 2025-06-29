@@ -76,7 +76,7 @@ def process_message(msg: str, state: dict) -> tuple[str, dict]:
 
             state["awaiting_time"] = False
             return (
-                f"✅ Your meeting is booked for {dt.strftime('%A, %d %B %Y at %I:%M %p')}.",
+                f" Your meeting is booked for {dt.strftime('%A, %d %B %Y at %I:%M %p')}.",
                 state
             )
 

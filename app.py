@@ -86,7 +86,7 @@ def send_message(message):
                     "message": message,
                     "conversation_state": st.session_state.conversation_state
                 },
-                timeout=30
+                timeout=300
             )
             response.raise_for_status()
             data = response.json()
@@ -94,9 +94,9 @@ def send_message(message):
             # Update conversation state
             st.session_state.conversation_state = data.get("conversation_state", {})
             
-            reply = data.get("reply", "⚠️ No reply from backend.")
+            reply = data.get("reply", " No reply from backend.")
     except Exception as e:
-        reply = f"⚠️ Backend error: {str(e)}"
+        reply = f" Backend error: {str(e)}"
     return reply
 
 user_input = st.chat_input("Type your message here...")
