@@ -16,7 +16,7 @@ app.add_middleware(
 class ChatRequest(BaseModel):
     message: str
 
-@app.post("/chat")
+@app.post("/")
 async def chat(req: ChatRequest):
     reply = process_message(req.message)
     return {"reply": reply}

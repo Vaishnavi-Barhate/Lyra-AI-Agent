@@ -80,6 +80,7 @@ def send_message(message):
         json={"message": message},
         timeout=30
     )
+        
         res.raise_for_status()
         reply = res.json().get("reply", "No reply from backend.")
     except Exception as e:
