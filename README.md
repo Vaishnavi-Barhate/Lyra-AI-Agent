@@ -43,7 +43,3 @@ Error handling and user-friendly responses
 
 ---
 
-Lyra: Your meeting is booked for Thursday, 27 June 2025 at 04:00 PM.
-
----
-
