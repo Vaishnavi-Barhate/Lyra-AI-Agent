@@ -1,5 +1,4 @@
 import os
-import re
 from datetime import datetime, timedelta
 
 import dateparser
@@ -8,7 +7,7 @@ from googleapiclient.discovery import build
 
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 
-# Google Calendar Auth
+
 def get_calendar_service():
     creds = None
     if os.path.exists('token.json'):
@@ -25,6 +24,7 @@ def get_calendar_service():
     service = build('calendar', 'v3', credentials=creds)
     return service
 
+
 def extract_datetime(message: str):
     dt = dateparser.parse(
         message,
@@ -35,48 +35,32 @@ def extract_datetime(message: str):
     )
     return dt
 
-def check_calendar_availability(service, date):
-    events_result = service.events().list(
-        calendarId='primary',
-        timeMin=f"{date}T00:00:00Z",
-        timeMax=f"{date}T23:59:59Z",
-        singleEvents=True,
-        orderBy='startTime'
-    ).execute()
-    events = events_result.get('items', [])
-    busy_slots = []
-    for event in events:
-        busy_slots.append({
-            "start": event["start"].get("dateTime", event["start"].get("date")),
-            "end": event["end"].get("dateTime", event["end"].get("date")),
-            "summary": event.get("summary", "")
-        })
-    return busy_slots
 
+def process_message(msg: str, conversation_state: dict) -> dict:
+    """
+    Processes user message and returns:
+        - reply: str
+        - updated conversation_state: dict
+    """
 
-# New conversation state
-conversation_state = {
-    "awaiting_time": False
-}
-
-
-def process_message(msg: str) -> str:
-    global conversation_state
     try:
         msg_lower = msg.lower()
 
-        # If we are waiting for time, parse it
-        if conversation_state["awaiting_time"]:
+        # Check if waiting for time
+        if conversation_state.get("awaiting_time", False):
             dt = extract_datetime(msg)
             if dt is None:
-                return (
-                    "I couldn't understand the time. "
-                    "Please try e.g. 'Tomorrow at 3 PM' or 'in 2 hours'."
-                )
-            
-            # Book the event
+                return {
+                    "reply": (
+                        "⚠️ I couldn't understand the time. "
+                        "Please try something like 'Tomorrow at 3 PM' or 'in 2 hours'."
+                    ),
+                    "conversation_state": conversation_state
+                }
+
+            # Book the meeting
             service = get_calendar_service()
-            
+
             start_dt_utc = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
             end_dt_obj = dt + timedelta(hours=1)
             end_dt_utc = end_dt_obj.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -96,18 +80,30 @@ def process_message(msg: str) -> str:
             service.events().insert(calendarId='primary', body=event).execute()
 
             conversation_state["awaiting_time"] = False
-            return f"Your meeting is booked for {dt.strftime('%A, %d %B %Y at %I:%M %p')}."
+            return {
+                "reply": f"✅ Your meeting is booked for {dt.strftime('%A, %d %B %Y at %I:%M %p')}!",
+                "conversation_state": conversation_state
+            }
 
-        # Otherwise, check if user wants to book
+        # Check if user wants to book
         if "book" in msg_lower or "schedule" in msg_lower:
             conversation_state["awaiting_time"] = True
-            return (
-                "I'd love to help you book! "
-                "Please tell me the time, e.g.: "
-                "'Tomorrow at 3 PM', 'Next Monday 10 AM', or 'In 2 hours'."
-            )
+            return {
+                "reply": (
+                    "✅ I'd love to help you book! "
+                    "Please tell me a time, e.g.: "
+                    "'Tomorrow at 3 PM', 'Next Monday 10 AM', or 'In 2 hours'."
+                ),
+                "conversation_state": conversation_state
+            }
 
-        return "I'm Lyra, your AI scheduling assistant. Tell me when you'd like to book a meeting!"
+        return {
+            "reply": "Hi! I'm Lyra, your AI scheduling assistant. Tell me when you'd like to book a meeting.",
+            "conversation_state": conversation_state
+        }
 
     except Exception as e:
-        return f"Error: {str(e)}"
+        return {
+            "reply": f"❌ Error: {str(e)}",
+            "conversation_state": conversation_state
+        }

@@ -6,6 +6,7 @@ st.set_page_config(
     layout="centered"
 )
 
+# Inject your purple styling
 st.markdown("""
     <style>
     body {
@@ -66,23 +67,31 @@ st.markdown("""
         Lyra AI - Conversations Meet Calendars
     </h2>
     <p style="text-align: center; color: #666666; font-size: 18px;">
-        Your Smart Scheduling Companion. Let’s Book your meeting now.
+        Your Smart Scheduling Companion. Let’s book your meeting now.
     </p>
 """, unsafe_allow_html=True)
 
+# Track conversation history and state
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+if "conversation_state" not in st.session_state:
+    st.session_state.conversation_state = {}
 
 def send_message(message):
     try:
         res = requests.post(
-        "https://lyra-ai-agent.onrender.com/",
-        json={"message": message},
-        timeout=30
-    )
-        
+            "https://lyra-ai-agent.onrender.com/",
+            json={
+                "message": message,
+                "conversation_state": st.session_state.conversation_state
+            },
+            timeout=30
+        )
         res.raise_for_status()
-        reply = res.json().get("reply", "No reply from backend.")
+        data = res.json()
+        # Save updated state from backend
+        st.session_state.conversation_state = data.get("conversation_state", {})
+        reply = data.get("reply", "No reply from backend.")
     except Exception as e:
         reply = f"Backend error: {str(e)}"
     return reply

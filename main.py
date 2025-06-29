@@ -13,10 +13,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 class ChatRequest(BaseModel):
     message: str
+    conversation_state: dict = {}
+
 
 @app.post("/")
 async def chat(req: ChatRequest):
-    reply = process_message(req.message)
-    return {"reply": reply}
+    result = process_message(req.message, req.conversation_state)
+    return result
