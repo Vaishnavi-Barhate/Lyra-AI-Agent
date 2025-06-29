@@ -18,7 +18,7 @@ def get_calendar_service():
     '/etc/secrets/client_secret_968893385878-18lck22286ptqecc50fui4062sfm9hkh.apps.googleusercontent.com.json',
     SCOPES
     )
-        creds = flow.run_local_server(port=8080)
+        creds = flow.run_console()
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
     service = build('calendar', 'v3', credentials=creds)
