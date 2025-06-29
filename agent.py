@@ -36,29 +36,24 @@ def extract_datetime(message: str):
     return dt
 
 
-def process_message(msg: str, conversation_state: dict) -> dict:
-    """
-    Processes user message and returns:
-        - reply: str
-        - updated conversation_state: dict
-    """
-
+def process_message(msg: str, state: dict) -> tuple[str, dict]:
     try:
+        # If no state provided, initialize
+        if not state:
+            state = {"awaiting_time": False}
+
         msg_lower = msg.lower()
 
-        # Check if waiting for time
-        if conversation_state.get("awaiting_time", False):
+        # If we are waiting for time, parse it
+        if state["awaiting_time"]:
             dt = extract_datetime(msg)
             if dt is None:
-                return {
-                    "reply": (
-                        "⚠️ I couldn't understand the time. "
-                        "Please try something like 'Tomorrow at 3 PM' or 'in 2 hours'."
-                    ),
-                    "conversation_state": conversation_state
-                }
+                return (
+                    "I couldn't understand the time. Please try e.g. 'Tomorrow at 3 PM' or 'in 2 hours'.",
+                    state
+                )
 
-            # Book the meeting
+            # Book the event
             service = get_calendar_service()
 
             start_dt_utc = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -79,31 +74,24 @@ def process_message(msg: str, conversation_state: dict) -> dict:
 
             service.events().insert(calendarId='primary', body=event).execute()
 
-            conversation_state["awaiting_time"] = False
-            return {
-                "reply": f"✅ Your meeting is booked for {dt.strftime('%A, %d %B %Y at %I:%M %p')}!",
-                "conversation_state": conversation_state
-            }
+            state["awaiting_time"] = False
+            return (
+                f"✅ Your meeting is booked for {dt.strftime('%A, %d %B %Y at %I:%M %p')}.",
+                state
+            )
 
-        # Check if user wants to book
+        # Otherwise, check if user wants to book
         if "book" in msg_lower or "schedule" in msg_lower:
-            conversation_state["awaiting_time"] = True
-            return {
-                "reply": (
-                    "✅ I'd love to help you book! "
-                    "Please tell me a time, e.g.: "
-                    "'Tomorrow at 3 PM', 'Next Monday 10 AM', or 'In 2 hours'."
-                ),
-                "conversation_state": conversation_state
-            }
+            state["awaiting_time"] = True
+            return (
+                "I'd love to help you book! Tell me the time, e.g. 'Tomorrow at 3 PM' or 'in 2 hours'.",
+                state
+            )
 
-        return {
-            "reply": "Hi! I'm Lyra, your AI scheduling assistant. Tell me when you'd like to book a meeting.",
-            "conversation_state": conversation_state
-        }
+        return (
+            "I'm Lyra, your AI scheduling assistant. Tell me when you'd like to book a meeting!",
+            state
+        )
 
     except Exception as e:
-        return {
-            "reply": f"❌ Error: {str(e)}",
-            "conversation_state": conversation_state
-        }
+        return (f"Error: {str(e)}", state)
