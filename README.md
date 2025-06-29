@@ -44,10 +44,11 @@ Error handling and user-friendly responses
 ---
 
 ## Demo Conversation
+
 User: Hi Lyra, I want to book a meeting.
 Lyra: I'd love to help you book! Please tell me the time, e.g.: "Tomorrow at 3 PM", "Next Monday 10 AM", or "In 2 hours."
 User: Tomorrow at 4 PM.
 Lyra: Your meeting is booked for Thursday, 27 June 2025 at 04:00 PM.
 
-
+---
 
