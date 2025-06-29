@@ -15,7 +15,7 @@ def get_calendar_service():
         creds = Credentials.from_authorized_user_file('token.json', SCOPES)
     else:
         flow = InstalledAppFlow.from_client_secrets_file(
-    '/etc/secrets/968893385878-18lck22286ptqecc50fui4062sfm9hkh.apps.googleusercontent.json',
+    '/etc/secrets/client_secret_968893385878-18lck22286ptqecc50fui4062sfm9hkh.apps.googleusercontent.com.json',
     SCOPES
     )
         creds = flow.run_local_server(port=8080)
