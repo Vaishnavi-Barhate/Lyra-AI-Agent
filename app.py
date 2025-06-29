@@ -76,10 +76,10 @@ if "chat_history" not in st.session_state:
 def send_message(message):
     try:
         res = requests.post(
-            "http://localhost:8000/chat",
-            json={"message": message},
-            timeout=30
-        )
+        "https://lyra-ai-agent.onrender.com/chat",
+        json={"message": message},
+        timeout=30
+    )
         res.raise_for_status()
         reply = res.json().get("reply", "No reply from backend.")
     except Exception as e:
