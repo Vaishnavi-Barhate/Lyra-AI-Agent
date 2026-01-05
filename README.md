@@ -12,9 +12,9 @@ Users can simply speak or type natural phrases, and Lyra will schedule appointme
 ---
 
 ## Requirements
-Python 3.9+ and FastAPI
-Google Cloud project with Calendar API enabled
-OAuth credentials for Google Calendar
+- Python 3.9+ and FastAPI
+- Google Cloud project with Calendar API enabled
+- OAuth credentials for Google Calendar
 
 
 ### Python Libraries
